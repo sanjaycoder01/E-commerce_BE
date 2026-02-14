@@ -1,13 +1,38 @@
+# Environment
 .env
-/node_modules
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
 .env.development
-.env.test
-.env.production
-.env.local
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
+.env*.local
+
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Optional
+coverage/
+.nyc_output/
+dist/
+build/
+*.tgz

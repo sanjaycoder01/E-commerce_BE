@@ -1,0 +1,11 @@
+const express = require('express');
+const authController = require('../controllers/auth.controller');
+const { authMiddleware, refreshTokenMiddleware } = require('../middlewares/auth.middleware');
+const profileController = require('../controllers/profile.controller');
+const router = express.Router();
+router.post('/signup', authController.signup);
+router.post('/login', authController.login);
+router.post('/refresh', refreshTokenMiddleware, authController.refresh);
+router.get('/profile', authMiddleware, profileController.getProfile);
+router.patch('/updateprofile', authMiddleware, profileController.updateProfile);
+module.exports = router;

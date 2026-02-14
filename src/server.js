@@ -1,15 +1,17 @@
+const path = require("path");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const app = require("./app");
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, ".env") });
 
-const PORT = process.env.PORT || 3000;
-
+const PORT = process.env.PORT || 3001;
+const MONGO_URI = process.env.MONGO_URI;
 // Connect to MongoDB (optional - server will start even if connection fails)
-if (process.env.MONGODB_URI) {
+if (MONGO_URI) {
+    console.log("Connecting to MongoDB", MONGO_URI);
     mongoose
-        .connect(process.env.MONGODB_URI)
+        .connect(MONGO_URI)
         .then(() => {
             console.log("Connected to MongoDB");
         })
@@ -18,7 +20,7 @@ if (process.env.MONGODB_URI) {
             console.warn("Server will continue without MongoDB connection");
         });
 } else {
-    console.warn("MONGODB_URI not set. Server running without database connection.");
+    console.warn("MONGO_URI not set. Server running without database connection.");
 }
 
 // Start server
