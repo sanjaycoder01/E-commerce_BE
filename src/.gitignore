@@ -9,7 +9,7 @@
 .env.production.local
 .env*.local
 
-# Dependencies
+# Dependencies (at project root)
 node_modules/
 
 # Logs

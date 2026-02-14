@@ -77,7 +77,8 @@ const productSchema = new mongoose.Schema({
         default: true
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    collection: 'prodcuts'
 });
 
 // Indexes
@@ -86,6 +87,6 @@ productSchema.index({ category: 1 });
 productSchema.index({ sku: 1 });
 productSchema.index({ isActive: 1 });
 
-const Product = mongoose.model('Product', productSchema);
+const Product = mongoose.model('products', productSchema);
 
 module.exports = Product;

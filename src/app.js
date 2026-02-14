@@ -1,15 +1,17 @@
 const express = require('express');
-
+const cors = require('cors');
 const app = express();
+
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(cors());
 // Routes
 const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
-
+const productRoutes = require('./routes/products.route');
+app.use('/api/products', productRoutes);
 app.get('/', (req, res) => {
     res.json({ 
         message: 'E-Commerce API is running',
