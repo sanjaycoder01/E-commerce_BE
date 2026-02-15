@@ -17,7 +17,7 @@ if (mongoUri) {
             console.warn("Server will continue without MongoDB connection");
         });
 } else {
-    console.warn("MONGO_URI not set. Server running without database connection.");
+    console.warn("MONGODB_URI not set. Server running without database connection.");
 }
 
 // Start server
