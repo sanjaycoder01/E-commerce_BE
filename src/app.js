@@ -12,6 +12,10 @@ const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 const productRoutes = require('./routes/products.route');
 app.use('/api/products', productRoutes);
+const cartRoutes = require('./routes/cart.routes');
+app.use('/api/cart', cartRoutes);
+const orderRoutes = require('./routes/order.routes');
+app.use('/api/orders', orderRoutes);
 app.get('/', (req, res) => {
     res.json({ 
         message: 'E-Commerce API is running',
