@@ -2,8 +2,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const ACCESS_TOKEN_EXPIRES_IN = '10minutes';
-const REFRESH_TOKEN_EXPIRES_IN = '5minute';
+const ACCESS_TOKEN_EXPIRES_IN = '100hours';
+const REFRESH_TOKEN_EXPIRES_IN = '5hours';
 
 function getTokenSecrets() {
     const accessTokenSecret = process.env.JWT_SECRET;

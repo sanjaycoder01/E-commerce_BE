@@ -1,7 +1,9 @@
 const User = require('../models/User');
+const orderService = require('./order.service');
 
 /**
  * GET /api/auth/profile - no body (uses auth token).
+ * Returns user profile and order details (list of orders).
  */
 
 async function getProfile(userId) {
@@ -11,7 +13,9 @@ async function getProfile(userId) {
 
     if (!user) throw new Error('User not found');
 
-    return user;
+    const orders = await orderService.getOrders(userId);
+
+    return { ...user, orders };
 }
 
 /**

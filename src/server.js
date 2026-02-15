@@ -1,17 +1,14 @@
-const path = require("path");
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
 const app = require("./app");
+const config = require("./config");
 
-dotenv.config({ path: path.join(__dirname, ".env") });
+const { port, mongoUri } = config;
 
-const PORT = process.env.PORT || 3001;
-const MONGO_URI = process.env.MONGO_URI;
 // Connect to MongoDB (optional - server will start even if connection fails)
-if (MONGO_URI) {
-    console.log("Connecting to MongoDB", MONGO_URI);
+if (mongoUri) {
+    console.log("Connecting to MongoDB", mongoUri);
     mongoose
-        .connect(MONGO_URI)
+        .connect(mongoUri)
         .then(() => {
             console.log("Connected to MongoDB");
         })
@@ -24,7 +21,7 @@ if (MONGO_URI) {
 }
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 });
 
