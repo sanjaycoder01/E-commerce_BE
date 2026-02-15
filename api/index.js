@@ -1,12 +1,10 @@
 const serverless = require('serverless-http');
-const mongoose = require('mongoose');
-const config = require('../src/config');
+const connectDB = require('../src/db');
 const app = require('../src/app');
 
-if (config.mongoUri) {
-    mongoose.connect(config.mongoUri)
-        .then(() => console.log('MongoDB Connected'))
-        .catch((err) => console.warn('MongoDB connection error:', err.message));
-}
+const serverlessHandler = serverless(app);
 
-module.exports = serverless(app);
+module.exports = async (req, res) => {
+    await connectDB();
+    return serverlessHandler(req, res);
+};
