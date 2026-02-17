@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 module.exports = {
-    port: process.env.PORT || 3001,
+    port: process.env.PORT,
     mongoUri: process.env.MONGODB_URI,
     jwtSecret: process.env.JWT_SECRET,
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
