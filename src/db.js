@@ -1,4 +1,9 @@
-const mongoose = require("mongoose");
+/**
+ * Database connection - used for serverless (cached connection)
+ * For local server, mongoose.connect is used in server.js
+ */
+const mongoose = require('mongoose');
+const config = require('./config');
 
 let cached = global.mongoose;
 
@@ -7,18 +12,18 @@ if (!cached) {
 }
 
 async function connectDB() {
-    console.log("MONGODB_URI exists:", !!process.env.MONGODB_URI);
-    console.log("MONGODB_URI value:", process.env.MONGODB_URI);
-  
-    if (!process.env.MONGODB_URI) {
-      throw new Error("MONGODB_URI is not defined");
-    }
+  const uri = config.uri || config.MONGODB_URI;
+
+  if (!uri) {
+    throw new Error('MONGODB_URI is not defined');
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(uri, {
+    cached.promise = mongoose.connect(uri, config.options || {
       bufferCommands: false,
       serverSelectionTimeoutMS: 5000,
     });

@@ -1,24 +1,21 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const config = require('../config');
 const User = require('../models/User');
 
-const ACCESS_TOKEN_EXPIRES_IN = '100hours';
-const REFRESH_TOKEN_EXPIRES_IN = '5hours';
-
 function getTokenSecrets() {
-    const accessTokenSecret = process.env.JWT_SECRET;
-    const refreshTokenSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
-    if (!accessTokenSecret || !refreshTokenSecret) {
-        throw new Error('JWT secrets are not configured');
-    }
-    return { accessTokenSecret, refreshTokenSecret };
+  const { secret: accessTokenSecret, refreshSecret: refreshTokenSecret } = config.jwt;
+  if (!accessTokenSecret || !refreshTokenSecret) {
+    throw new Error('JWT secrets are not configured');
+  }
+  return { accessTokenSecret, refreshTokenSecret };
 }
 
 function createTokens(user) {
     const { accessTokenSecret, refreshTokenSecret } = getTokenSecrets();
     const payload = { userId: user._id.toString(), role: user.role };
-    const accessToken = jwt.sign(payload, accessTokenSecret, { expiresIn: ACCESS_TOKEN_EXPIRES_IN });
-    const refreshToken = jwt.sign(payload, refreshTokenSecret, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
+    const accessToken = jwt.sign(payload, accessTokenSecret, { expiresIn: config.jwt.expiresIn });
+    const refreshToken = jwt.sign(payload, refreshTokenSecret, { expiresIn: config.jwt.refreshExpiresIn });
     return { accessToken, refreshToken };
 }
 

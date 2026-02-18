@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const config = require('../config');
 
 function authMiddleware(req, res, next) {
   try {
@@ -9,7 +10,7 @@ function authMiddleware(req, res, next) {
       return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwt.secret);
     req.user = { id: decoded.userId, role: decoded.role };
     next();
   } catch (err) {
@@ -28,7 +29,7 @@ function authMiddleware(req, res, next) {
             return res.status(401).json({ status: 'error', message: 'Refresh token is required' });
         }
 
-        const refreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+        const refreshSecret = config.jwt.refreshSecret;
         const decoded = jwt.verify(refreshToken, refreshSecret);
         req.refreshUser = { id: decoded.userId, role: decoded.role };
         req.refreshToken = refreshToken;

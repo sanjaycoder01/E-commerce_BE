@@ -1,20 +1,11 @@
-const express = require("express");
-const cors = require("cors");
+const express = require('express');
+const cors = require('cors');
+const config = require('./config');
 
 const app = express();
 
 // CORS setup
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:5173",
-  "http://localhost:4173",
-  "http://127.0.0.1:3000",
-  "http://127.0.0.1:5173",
-  "http://127.0.0.1:4173",
-  ...(process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
-    : []),
-];
+const { allowedOrigins, credentials, methods, allowedHeaders } = config.cors;
 
 app.use(
   cors({
@@ -25,9 +16,9 @@ app.use(
         callback(null, true); // Allow all for now
       }
     },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials,
+    methods,
+    allowedHeaders,
   })
 );
 
