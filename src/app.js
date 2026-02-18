@@ -36,7 +36,7 @@ app.get('/ping', (req, res) => {
 });
 
 // DB connection middleware — applied only to routes that need it
-app.use(['/auth', '/products', '/cart', '/orders'], async (req, res, next) => {
+app.use(['/auth', '/products', '/cart', '/orders', '/payment'], async (req, res, next) => {
   try {
     await connectDB();
     next();
@@ -54,6 +54,7 @@ app.use('/auth', require('./routes/auth.routes'));
 app.use('/products', require('./routes/products.route'));
 app.use('/cart', require('./routes/cart.routes'));
 app.use('/orders', require('./routes/order.routes'));
+app.use('/payment', require('./routes/payment.routes'));
 
 // Error handler
 app.use((err, req, res, next) => {
