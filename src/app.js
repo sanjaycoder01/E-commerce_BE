@@ -53,6 +53,9 @@ app.use((err, req, res, next) => {
         message: err.message || 'Internal server error'
     });
 });
+app.get("/ping", (req, res) => {
+    res.json({ status: "Server running" });
+  });
 
 // 404 handler
 app.use((req, res) => {
@@ -62,7 +65,5 @@ app.use((req, res) => {
         message: `Route ${req.method} ${req.path} not found`
     });
 });
-app.get("/ping", (req, res) => {
-    res.json({ status: "Server running" });
-  });
+
 module.exports = app;
