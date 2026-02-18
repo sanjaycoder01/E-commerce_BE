@@ -24,4 +24,14 @@ async function refresh(req, res, next) {
         next(err);  // pass to error handler middleware
     }
 }
-module.exports = { signup, login, refresh };
+
+async function logout(req, res, next) {
+    try {
+        const { message } = await authService.logout(req.user.id);
+        res.status(200).json({ status: 'success', message });
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = { signup, login, refresh, logout };

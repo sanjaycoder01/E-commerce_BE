@@ -69,6 +69,12 @@ async function createOrder(userId, body) {
         orderStatus: 'PLACED'
     });
 
+    for (const item of orderItems) {
+        await Product.findByIdAndUpdate(item.product, {
+            $inc: { stock: -item.quantity }
+        });
+    }
+
     cart.items = [];
     await cart.save();
 

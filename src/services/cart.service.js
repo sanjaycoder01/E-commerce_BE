@@ -2,14 +2,22 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
 
+function addOutOfStockToItems(items) {
+    if (items && Array.isArray(items)) {
+        items.forEach((item) => {
+            if (item.product) item.product.outOfStock = item.product.stock === 0;
+        });
+    }
+}
+
 async function getCart(userId) {
     const cart = await Cart.findOne({ user: userId })
         .populate('items.product', 'name slug price discountPrice images stock isActive')
         .lean();
-    console.log("cart",cart);
     if (!cart) {
         return { items: [], totalPrice: 0 };
     }
+    addOutOfStockToItems(cart.items);
 
     return {
         items: cart.items,
@@ -54,6 +62,7 @@ async function addItem(userId, productId, quantity = 1) {
     const saved = await Cart.findById(cart._id)
         .populate('items.product', 'name slug price discountPrice images stock isActive')
         .lean();
+    addOutOfStockToItems(saved?.items);
     return saved;
 }
 
@@ -84,6 +93,7 @@ async function updateItem(userId, productId, quantity) {
     const saved = await Cart.findById(cart._id)
         .populate('items.product', 'name slug price discountPrice images stock isActive')
         .lean();
+    addOutOfStockToItems(saved?.items);
     return saved;
 }
 
@@ -100,12 +110,12 @@ async function removeItem(userId, productId) {
 
     cart.items = cart.items.filter(
         (item) => item.product.toString() !== productId.toString()
-     );
-     console.log("cart",cart);
+    );
     await cart.save();
     const saved = await Cart.findById(cart._id)
         .populate('items.product', 'name slug price discountPrice images stock isActive')
         .lean();
+    addOutOfStockToItems(saved?.items);
     return saved;
 }
 

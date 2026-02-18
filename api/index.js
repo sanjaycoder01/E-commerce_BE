@@ -1,10 +1,19 @@
-const serverless = require('serverless-http');
-const connectDB = require('../src/db');
-const app = require('../src/app');
+const serverless = require("serverless-http");
+const mongoose = require("mongoose");
+const app = require("../app");
 
-const serverlessHandler = serverless(app);
+let isConnected = false;
+
+async function connectDB() {
+  if (isConnected) return;
+
+  await mongoose.connect(process.env.MONGODB_URI);
+  isConnected = true;
+}
+
+const handler = serverless(app);
 
 module.exports = async (req, res) => {
-    await connectDB();
-    return serverlessHandler(req, res);
+  await connectDB();
+  return handler(req, res);
 };

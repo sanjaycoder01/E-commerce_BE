@@ -20,8 +20,3 @@ if (mongoUri) {
     console.warn("MONGODB_URI not set. Server running without database connection.");
 }
 
-// Start server
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
-

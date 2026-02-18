@@ -117,4 +117,12 @@ async function refreshAccessToken(refreshUser) {
         throw error;
     }
 }
-module.exports = { signup, login, refreshAccessToken };
+
+async function logout(userId) {
+    if (!userId) {
+        throw new Error('User not found');
+    }
+    return { message: 'Logged out successfully' };
+}
+
+module.exports = { signup, login, refreshAccessToken, logout };
