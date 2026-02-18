@@ -1,16 +1,8 @@
 const serverless = require("serverless-http");
-const mongoose = require("mongoose");
+const connectDB = require("../db");
 const app = require("../app");
 
-let isConnected = false;
-
-async function connectDB() {
-  if (isConnected) return;
-
-  await mongoose.connect(process.env.MONGODB_URI);
-  isConnected = true;
-}
-
+// Create handler once (important for performance)
 const handler = serverless(app);
 
 module.exports = async (req, res) => {
