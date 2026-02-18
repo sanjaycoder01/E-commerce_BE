@@ -2,13 +2,13 @@ const mongoose = require("mongoose");
 const app = require("./app");
 const config = require("./config");
 
-const { port, mongoUri } = config;
+const mongouri=process.env.MONGODB_URI;
 
 // Connect to MongoDB (optional - server will start even if connection fails)
-if (mongoUri) {
-    console.log("Connecting to MongoDB", mongoUri);
+if (mongouri) {
+    console.log("Connecting to MongoDB", mongouri);
     mongoose
-        .connect(mongoUri)
+        .connect(mongouri)
         .then(() => {
             console.log("Connected to MongoDB");
         })

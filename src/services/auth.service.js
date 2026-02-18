@@ -72,6 +72,7 @@ async function signup(body) {
 }
 async function login(body) {
     try{
+        console.log('login body', body);
         const { email, password } = body;
         if(!email || !password) {
             throw new Error('All fields are required');
