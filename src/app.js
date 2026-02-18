@@ -31,13 +31,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
 // Routes
 const authRoutes = require('./routes/auth.routes');
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 const productRoutes = require('./routes/products.route');
-app.use('/api/products', productRoutes);
+app.use('/products', productRoutes);
 const cartRoutes = require('./routes/cart.routes');
-app.use('/api/cart', cartRoutes);
+app.use('/cart', cartRoutes);
 const orderRoutes = require('./routes/order.routes');
-app.use('/api/orders', orderRoutes);
+app.use('/orders', orderRoutes);
 app.get('/', (req, res) => {
     res.json({ 
         message: 'E-Commerce API is running',
