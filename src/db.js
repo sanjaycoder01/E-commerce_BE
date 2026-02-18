@@ -1,9 +1,12 @@
 /**
- * Database connection - used for serverless (cached connection)
- * For local server, mongoose.connect is used in server.js
+ * Database connection with caching for serverless environments (Vercel).
+ * Reuses the connection across warm invocations; resets on failure so the
+ * next request can retry rather than getting stuck on a rejected promise.
  */
 const mongoose = require('mongoose');
-const config = require('./config');
+
+// Disable command buffering globally - fail fast instead of hanging
+mongoose.set('bufferCommands', false);
 
 let cached = global.mongoose;
 
@@ -12,24 +15,38 @@ if (!cached) {
 }
 
 async function connectDB() {
-  const uri = config.uri || config.MONGODB_URI;
+  const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    throw new Error('MONGODB_URI is not defined');
+    throw new Error('MONGODB_URI environment variable is not defined');
   }
 
+  // Return existing connection
   if (cached.conn) {
     return cached.conn;
   }
 
+  // Start a new connection if one isn't in progress
   if (!cached.promise) {
-    cached.promise = mongoose.connect(uri, config.options || {
-      bufferCommands: false,
-      serverSelectionTimeoutMS: 5000,
-    });
+    cached.promise = mongoose
+      .connect(uri, {
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+      })
+      .then((mongooseInstance) => {
+        console.log('MongoDB connected');
+        return mongooseInstance;
+      });
   }
 
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    // Reset so the next request can attempt a fresh connection
+    cached.promise = null;
+    throw err;
+  }
+
   return cached.conn;
 }
 
