@@ -7,12 +7,12 @@ if (!cached) {
 }
 
 async function connectDB() {
-  const uri = process.env.MONGODB_URI;
-
-  if (!uri) {
-    throw new Error("MONGODB_URI is not defined");
-  }
-
+    console.log("MONGODB_URI exists:", !!process.env.MONGODB_URI);
+    console.log("MONGODB_URI value:", process.env.MONGODB_URI);
+  
+    if (!process.env.MONGODB_URI) {
+      throw new Error("MONGODB_URI is not defined");
+    }
   if (cached.conn) {
     return cached.conn;
   }
