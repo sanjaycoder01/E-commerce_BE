@@ -23,8 +23,25 @@ app.use(
   })
 );
 
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Razorpay webhook must receive raw body for signature verification — register before express.json()
+const webhookHandler = [
+  express.raw({ type: 'application/json' }),
+  async (req, res, next) => {
+    try {
+      await connectDB();
+      next();
+    } catch (err) {
+      return res.status(503).json({ status: 'error', message: 'Database connection failed' });
+    }
+  },
+  require('./controllers/payment.controller').webhook,
+];
+app.post('/payment/webhook', webhookHandler);
+app.post('/api/payment/webhook', webhookHandler);
+
+app.use(express.json());
 
 // Health check routes — no DB needed
 app.get('/', (req, res) => {
@@ -36,7 +53,7 @@ app.get('/ping', (req, res) => {
 });
 
 // DB connection middleware — applied only to routes that need it
-app.use(['/auth', '/products', '/cart', '/orders', '/payment'], async (req, res, next) => {
+app.use(['/auth', '/products', '/cart', '/orders', '/payment', '/api/chat'], async (req, res, next) => {
   try {
     await connectDB();
     next();
@@ -55,6 +72,7 @@ app.use('/products', require('./routes/products.route'));
 app.use('/cart', require('./routes/cart.routes'));
 app.use('/orders', require('./routes/order.routes'));
 app.use('/payment', require('./routes/payment.routes'));
+app.use('/api/chat', require('./routes/chat.routes'));
 
 // Error handler
 app.use((err, req, res, next) => {
