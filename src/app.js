@@ -5,8 +5,27 @@ const connectDB = require('./db');
 
 const app = express();
 
-// CORS setup
+// CORS setup — explicit preflight for Vercel/serverless (must run first)
 const { allowedOrigins, credentials, methods, allowedHeaders } = config.cors;
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowOrigin =
+    origin && allowedOrigins.includes(origin)
+      ? origin
+      : origin || allowedOrigins[0]; // request origin if present, else default
+  if (credentials) {
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  res.setHeader('Access-Control-Allow-Origin', allowOrigin);
+  res.setHeader('Access-Control-Allow-Methods', methods.join(', '));
+  res.setHeader('Access-Control-Allow-Headers', allowedHeaders.join(', '));
+  res.setHeader('Access-Control-Max-Age', '86400');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 app.use(
   cors({
