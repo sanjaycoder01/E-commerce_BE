@@ -10,6 +10,7 @@ module.exports = {
   cors: require('./cors'),
   server: require('./server'),
   razorpay: require('./razorpay'),
+  redis: require('./redis'),
   // Convenience exports for backward compatibility
   MONGODB_URI: process.env.MONGODB_URI,
   JWT_SECRET: process.env.JWT_SECRET,

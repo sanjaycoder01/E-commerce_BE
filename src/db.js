@@ -15,7 +15,7 @@ if (!cached) {
 }
 
 async function connectDB() {
-  const uri = process.env.MONGODB_URI;
+  const uri = 'mongodb+srv://sjkulkarni31:Onyx%4012345@cluster0.doef4qx.mongodb.net/?appName=Cluster0';
 
   if (!uri) {
     throw new Error('MONGODB_URI environment variable is not defined');

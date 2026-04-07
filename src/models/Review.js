@@ -51,6 +51,12 @@ reviewSchema.statics.calculateProductRatings = async function(productId) {
             ratingsCount: stats[0]?.ratingsCount || 0,
             ratingsAverage: stats[0]?.ratingsAverage ? Math.round(stats[0].ratingsAverage * 10) / 10 : 0
         });
+        try {
+            const { invalidateProductsListCache } = require('../services/products.service');
+            await invalidateProductsListCache();
+        } catch (invalidateErr) {
+            console.warn('invalidateProductsListCache:', invalidateErr.message);
+        }
     } catch (error) {
         console.error('Error updating product ratings:', error);
     }

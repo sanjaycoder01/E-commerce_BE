@@ -4,5 +4,6 @@ const { authMiddleware } = require('../middlewares/auth.middleware');
 const router = express.Router();
 router.get('/getproductbyid/:id', authMiddleware, productController.getProductId);
 router.get('/getallproducts', authMiddleware, productController.getProducts);
+router.get('/by-category/:categoryName', authMiddleware, productController.getProductsByCategory);
 router.get('/search', authMiddleware, productController.searchProducts);
 module.exports = router;

@@ -1,7 +1,7 @@
 const productService = require('../services/products.service');
 
-async function getProductId(req, res, next){
-    try{
+async function getProductId(req, res, next) {
+    try {
         const product = await productService.getProductId(req.params.id);
         res.status(200).json({ status: 'success', data: { product } });
     } catch (err) {
@@ -9,8 +9,8 @@ async function getProductId(req, res, next){
     }
 }
 
-async function getProducts(req, res, next){ 
-    try{
+async function getProducts(req, res, next) {
+    try {
         const products = await productService.getProducts();
         res.status(200).json({ status: 'success', data: { products } });
     } catch (err) {
@@ -27,4 +27,17 @@ async function searchProducts(req, res, next) {
     }
 }
 
-module.exports = { getProductId, getProducts, searchProducts };
+/**
+ * Query: category | name | categoryName — category label or slug to match.
+ * Query: sort — name (default) | price_asc | price_desc | newest | rating
+ */
+async function getProductsByCategory(req, res, next) {
+    try {
+        const products = await productService.getProductsByCategoryName(req.params.categoryName);
+        res.status(200).json({ status: 'success', data: { products } });
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = { getProductId, getProducts, searchProducts, getProductsByCategory };

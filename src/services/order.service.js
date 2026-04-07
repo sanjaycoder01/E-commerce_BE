@@ -2,6 +2,7 @@ const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
+const { invalidateProductsListCache } = require('./products.service');
 
 const SHIPPING_ADDRESS_FIELDS = ['fullName', 'phone', 'address', 'city', 'state', 'pincode'];
 
@@ -74,6 +75,8 @@ async function createOrder(userId, body) {
             $inc: { stock: -item.quantity }
         });
     }
+
+    await invalidateProductsListCache();
 
     cart.items = [];
     await cart.save();
