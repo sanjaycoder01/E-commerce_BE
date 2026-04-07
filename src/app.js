@@ -1,4 +1,5 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const config = require('./config');
 const connectDB = require('./db');
@@ -61,6 +62,7 @@ app.post('/payment/webhook', webhookHandler);
 app.post('/api/payment/webhook', webhookHandler);
 
 app.use(express.json());
+app.use(cookieParser());
 
 // Health check routes — no DB needed
 app.get('/', (req, res) => {

@@ -1,12 +1,16 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
+const { ACCESS_TOKEN_NAME, REFRESH_TOKEN_NAME } = require('../config/cookies');
 
 function authMiddleware(req, res, next) {
   try {
     const authHeader = req.headers.authorization || '';
-    const [scheme, token] = authHeader.split(' ');
+    const [scheme, bearerToken] = authHeader.split(' ');
+    const cookieToken = req.cookies?.[ACCESS_TOKEN_NAME];
+    const token =
+      scheme === 'Bearer' && bearerToken ? bearerToken : cookieToken || null;
 
-    if (scheme !== 'Bearer' || !token) {
+    if (!token) {
       return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
 
@@ -19,11 +23,16 @@ function authMiddleware(req, res, next) {
 }
  function refreshTokenMiddleware(req, res, next) {
     try {
-        // Accept refresh token from body first, then Bearer header fallback.
+        // Body, then Bearer header, then HTTP-only cookie.
         const bodyRefreshToken = req.body?.refreshToken;
         const authHeader = req.headers.authorization || '';
         const [scheme, bearerToken] = authHeader.split(' ');
-        const refreshToken = bodyRefreshToken || (scheme === 'Bearer' ? bearerToken : null);
+        const cookieRefresh = req.cookies?.[REFRESH_TOKEN_NAME];
+        const refreshToken =
+            bodyRefreshToken ||
+            (scheme === 'Bearer' ? bearerToken : null) ||
+            cookieRefresh ||
+            null;
 
         if (!refreshToken) {
             return res.status(401).json({ status: 'error', message: 'Refresh token is required' });

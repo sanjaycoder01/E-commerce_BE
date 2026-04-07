@@ -1,10 +1,14 @@
 /**
  * Chat orchestrator: receives chat message, detects intent, routes to correct agent,
  * returns unified JSON for frontend chat UI.
+ * Compound messages ("show cart and list phones") use swarm planning: multiple intents
+ * in one turn (parallel reads, sequential mutations).
  * All business logic lives in agents/services; this layer only routes and formats.
  */
 
 const intentService = require('../services/intent.service');
+const swarmPlanner = require('../services/swarmPlanner.service');
+const swarmExecutor = require('../services/swarmExecutor.service');
 const productAgent = require('../agents/productAgent');
 const cartAgent = require('../agents/cartAgent');
 const orderAgent = require('../agents/orderAgent');
@@ -29,6 +33,19 @@ async function chat(req, res, next) {
     }
 
     const context = { productId, orderId };
+    const swarmPlan = await swarmPlanner.buildPlan(message || '', context);
+
+    if (swarmPlan.mode === 'swarm' && swarmPlan.steps && swarmPlan.steps.length >= 2) {
+      const result = await swarmExecutor.execute(swarmPlan.steps, {
+        userId,
+        productId,
+        quantity,
+        orderId,
+        shippingAddress,
+      });
+      return res.status(200).json(result);
+    }
+
     const { intent, params } = await intentService.detectIntent(message || '', context);
 
     let result;

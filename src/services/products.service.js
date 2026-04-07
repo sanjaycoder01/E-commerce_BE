@@ -34,15 +34,18 @@ async function getProducts(){
         try {
             const cached = await redis.get(PRODUCTS_LIST_CACHE_KEY);
             if (cached) {
+                console.log('[getProducts] cache hit: returning products from Redis');
                 const products = JSON.parse(cached);
                 products.forEach(addOutOfStock);
                 return products;
             }
+            console.log('[getProducts] cache miss: Redis key not found');
         } catch (err) {
             console.warn('Redis get (products list) failed:', err.message);
         }
     }
 
+    console.log('[getProducts] reading products from MongoDB');
     const products = await Product.find().lean();
     if(!products) throw new Error('Products not found');
     products.forEach(addOutOfStock);
@@ -55,6 +58,7 @@ async function getProducts(){
                 'EX',
                 productsCacheTtlSeconds
             );
+            console.log('[getProducts] products cached in Redis');
         } catch (err) {
             console.warn('Redis set (products list) failed:', err.message);
         }
