@@ -137,7 +137,7 @@ const SORT_BY_CATEGORY = ['name', 'price_asc', 'price_desc', 'newest', 'rating']
 
 async function getProductsByCategoryName(categoryName){
     console.log(categoryName);
-    const category=await Category.findOne({name:categoryName}).lean();
+    const category=await Category.findOne({slug:categoryName}).lean();
     console.log(category);
     if(category){
         const products=await Product.find({category:category._id}).lean();
