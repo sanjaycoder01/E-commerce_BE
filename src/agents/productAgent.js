@@ -32,6 +32,13 @@ async function handle({ userId, intent, params }) {
         ? `Here are ${products.length} product(s) matching your search.`
         : `Here are our products (${products.length} total).`;
 
+  const suggestions =
+    products.length === 0
+      ? hasFilters
+        ? ['Try a different search', 'Show all products']
+        : []
+      : ['Add to cart', 'View details'];
+
   return {
     type: 'product_list',
     message,
@@ -46,7 +53,7 @@ async function handle({ userId, intent, params }) {
       outOfStock: p.outOfStock,
       category: p.category,
     })),
-    suggestions: ['Add to cart', 'View details'],
+    suggestions,
   };
 }
 

@@ -23,6 +23,9 @@ function getRazorpayInstance() {
  * @param {string} userId - Logged-in user id
  */
 async function createRazorpayOrder(orderId, userId) {
+  if (orderId == null || !String(orderId).trim()) {
+    throw new Error('Order id is required');
+  }
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
     throw new Error('Invalid order id');
   }

@@ -1,14 +1,15 @@
 /**
- * Swarm planner: splits compound user messages into multiple intent+params steps
- * so several specialist agents can run in one chat turn (parallel when safe).
+ * Swarm planner: builds one or more intent+params steps for swarmExecutor.
+ * Single-utterance messages become one step; compound messages ("X and Y") become multiple steps.
  */
 
 const intentService = require('./intent.service');
+const { swarmLog, swarmDebug } = require('../utils/swarmLog');
 
 const { INTENTS } = intentService;
 
 /**
- * Split on coordinating conjunctions (English). Single-segment → not a compound swarm turn.
+ * Split on coordinating conjunctions (English). Single segment → one part.
  */
 function splitCompound(message) {
   const trimmed = (message && String(message).trim()) || '';
@@ -20,27 +21,48 @@ function splitCompound(message) {
 /**
  * @param {string} message
  * @param {object} context - forwarded to intent detection (productId, orderId)
- * @returns {Promise<{ mode: 'single' } | { mode: 'swarm', steps: Array<{ intent: string, params: object }> }>}
+ * @returns {Promise<{ steps: Array<{ intent: string, params: object }> }>}
  */
 async function buildPlan(message, context = {}) {
+  const trimmed = (message && String(message).trim()) || '';
+  if (!trimmed) {
+    swarmDebug('plan: empty message');
+    return { steps: [] };
+  }
+
   const segments = splitCompound(message);
+
   if (segments.length < 2) {
-    return { mode: 'single' };
+    const { intent, params } = await intentService.detectIntent(trimmed, context);
+    swarmLog('plan: steps', { segmentCount: 1, intents: [intent] });
+    return { steps: [{ intent, params }] };
   }
 
   const steps = [];
+  const skipped = [];
   for (const seg of segments) {
     const { intent, params } = await intentService.detectIntent(seg, context);
-    if (intent && intent !== INTENTS.UNKNOWN) {
+    if (intent && intent !== INTENTS.UNKNOWN && intent !== INTENTS.GREETING) {
       steps.push({ intent, params });
+    } else if (intent) {
+      skipped.push({ segment: truncate(seg, 60), intent });
     }
   }
 
-  if (steps.length < 2) {
-    return { mode: 'single' };
-  }
+  swarmLog('plan: steps', {
+    segmentCount: segments.length,
+    stepCount: steps.length,
+    intents: steps.map((s) => s.intent),
+    skipped: skipped.length ? skipped : undefined,
+  });
 
-  return { mode: 'swarm', steps };
+  return { steps };
+}
+
+function truncate(s, max) {
+  const t = (s && String(s).trim()) || '';
+  if (t.length <= max) return t;
+  return `${t.slice(0, max)}…`;
 }
 
 module.exports = {

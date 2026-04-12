@@ -10,6 +10,7 @@ const paymentAgent = require('../agents/paymentAgent');
 const confirmationAgent = require('../agents/confirmationAgent');
 
 const intentService = require('./intent.service');
+const { swarmLog } = require('../utils/swarmLog');
 const { INTENTS } = intentService;
 
 const READ_INTENTS = new Set([
@@ -45,6 +46,20 @@ async function dispatchStep({ intent, params }, ctx) {
       return paymentAgent.handle({ userId, intent, params, orderId });
     case INTENTS.GET_ORDER_STATUS:
       return confirmationAgent.handle({ userId, intent, params, orderId });
+    case INTENTS.GREETING:
+      return {
+        type: 'message',
+        message:
+          "Hi! I'm your shopping assistant. Ask me to list products, add items to your cart, view your cart, place an order, or checkout.",
+        data: null,
+      };
+    case INTENTS.UNKNOWN:
+      return {
+        type: 'unknown',
+        message: "I didn't understand that. You can ask to list products, add to cart, view cart, place order, or checkout.",
+        data: null,
+        suggestions: ['List products', 'Place order'],
+      };
     default:
       return {
         type: 'unknown',
@@ -90,27 +105,78 @@ function mergeOutcomes(outcomes) {
  */
 async function execute(steps, ctx) {
   if (!steps || steps.length === 0) {
+    swarmLog('execute: empty steps → unknown response');
     return {
       type: 'unknown',
       message: "I didn't understand that.",
       data: null,
-      suggestions: ['List products', 'View cart'],
+      suggestions: ['List products', 'Place order'],
     };
   }
 
-  const allRead = steps.every((s) => isReadOnlyIntent(s.intent));
-
-  let outcomes;
-  if (allRead) {
-    outcomes = await Promise.all(steps.map((step) => dispatchStep(step, ctx)));
-  } else {
-    outcomes = [];
-    for (const step of steps) {
-      outcomes.push(await dispatchStep(step, ctx));
+  if (steps.length === 1) {
+    const step = steps[0];
+    swarmLog('execute: single step', { intent: step.intent });
+    const stepStart = Date.now();
+    try {
+      const out = await dispatchStep(step, ctx);
+      swarmLog(`execute: step 0 ${step.intent} → ${out.type} (${Date.now() - stepStart}ms)`);
+      return out;
+    } catch (err) {
+      swarmLog(`execute: step 0 ${step.intent} FAILED`, { error: err.message });
+      throw err;
     }
   }
 
-  return mergeOutcomes(outcomes);
+  const allRead = steps.every((s) => isReadOnlyIntent(s.intent));
+  const strategy = allRead ? 'parallel (read-only)' : 'sequential (writes or mixed)';
+  swarmLog('execute: start', {
+    strategy,
+    intents: steps.map((s) => s.intent),
+    userId: ctx.userId,
+  });
+
+  let outcomes;
+  if (allRead) {
+    const t0 = Date.now();
+    outcomes = await Promise.all(
+      steps.map(async (step, i) => {
+        const stepStart = Date.now();
+        try {
+          const out = await dispatchStep(step, ctx);
+          swarmLog(`execute: step ${i} ${step.intent} → ${out.type} (${Date.now() - stepStart}ms)`);
+          return out;
+        } catch (err) {
+          swarmLog(`execute: step ${i} ${step.intent} FAILED`, { error: err.message });
+          throw err;
+        }
+      }),
+    );
+    swarmLog(`execute: parallel batch done (${Date.now() - t0}ms total)`);
+  } else {
+    outcomes = [];
+    const t0 = Date.now();
+    for (let i = 0; i < steps.length; i++) {
+      const step = steps[i];
+      const stepStart = Date.now();
+      try {
+        const out = await dispatchStep(step, ctx);
+        swarmLog(`execute: step ${i} ${step.intent} → ${out.type} (${Date.now() - stepStart}ms)`);
+        outcomes.push(out);
+      } catch (err) {
+        swarmLog(`execute: step ${i} ${step.intent} FAILED`, { error: err.message });
+        throw err;
+      }
+    }
+    swarmLog(`execute: sequential chain done (${Date.now() - t0}ms total)`);
+  }
+
+  const merged = mergeOutcomes(outcomes);
+  swarmLog('execute: merged response', {
+    type: merged.type,
+    resultTypes: outcomes.map((o) => o.type),
+  });
+  return merged;
 }
 
 module.exports = {

@@ -1,9 +1,12 @@
 /**
  * Payment agent: handles CHECKOUT intent.
  * Creates Razorpay order via payment.service; returns data for frontend Checkout.
+ * When orderId is omitted (e.g. user taps "Proceed to checkout" after place order), uses latest PENDING order for this user.
  */
 
 const paymentService = require('../services/payment.service');
+const orderService = require('../services/order.service');
+const { toValidObjectIdString } = require('../utils/mongoId');
 
 /**
  * @param {object} input
@@ -14,9 +17,14 @@ const paymentService = require('../services/payment.service');
  * @returns {Promise<{ type: string, message: string, data: object }>}
  */
 async function handle({ userId, intent, params, orderId }) {
-  const oid = orderId || (params && params.orderId);
-  if (!oid || !String(oid).trim()) {
-    throw new Error('Order ID is required for checkout. Please place an order first or provide the orderId.');
+  let oid =
+    toValidObjectIdString(orderId) ||
+    toValidObjectIdString(params && params.orderId);
+  if (!oid) {
+    oid = await orderService.getLatestPendingOrderId(userId);
+  }
+  if (!oid) {
+    throw new Error('No pending order for checkout. Place an order first, or pass orderId in the request.');
   }
 
   const checkoutData = await paymentService.createRazorpayOrder(oid, userId);

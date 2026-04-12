@@ -74,21 +74,44 @@ app.get('/ping', (req, res) => {
 });
 
 // DB connection middleware — applied only to routes that need it
-app.use(['/auth', '/products', '/cart', '/orders', '/payment', '/api/chat', '/category'], async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (err) {
-    console.error('DB connection failed:', err.message);
-    return res.status(503).json({
-      status: 'error',
-      message: 'Database connection failed. Please try again later.',
-    });
+app.use(
+  [
+    '/auth',
+    '/api/login',
+    '/api/signup',
+    '/profile',
+    '/api/profile',
+    '/products',
+    '/cart',
+    '/orders',
+    '/payment',
+    '/api/chat',
+    '/category',
+  ],
+  async (req, res, next) => {
+    try {
+      await connectDB();
+      next();
+    } catch (err) {
+      console.error('DB connection failed:', err.message);
+      return res.status(503).json({
+        status: 'error',
+        message: 'Database connection failed. Please try again later.',
+      });
+    }
   }
-});
+);
+
+const authController = require('./controllers/auth.controller');
+const profileController = require('./controllers/profile.controller');
+const { authMiddleware } = require('./middlewares/auth.middleware');
 
 // Routes
 app.use('/auth', require('./routes/auth.routes'));
+app.post('/api/login', authController.login);
+app.post('/api/signup', authController.signup);
+app.get('/profile', authMiddleware, profileController.getProfile);
+app.get('/api/profile', authMiddleware, profileController.getProfile);
 app.use('/products', require('./routes/products.route'));
 app.use('/cart', require('./routes/cart.routes'));
 app.use('/orders', require('./routes/order.routes'));

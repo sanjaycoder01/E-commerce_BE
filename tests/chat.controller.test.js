@@ -1,6 +1,6 @@
 /**
- * Tests for chat controller: orchestrator routing and response shape.
- * Mocks intentService and agents to avoid DB/OpenAI.
+ * Tests for chat controller: swarmPlanner.buildPlan + swarmExecutor only.
+ * Mocks intentService.detectIntent and agents to avoid DB/Groq.
  */
 const { describe, it, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
@@ -85,6 +85,22 @@ describe('chat.controller', () => {
     assert.strictEqual(res.statusCode, 200);
     assert.strictEqual(res.body.type, 'unknown');
     assert.ok(res.body.message);
+  });
+
+  it('returns 200 and message type for GREETING without suggestions', async () => {
+    intentService.detectIntent = async () => ({
+      intent: intentService.INTENTS.GREETING,
+      params: {},
+    });
+
+    const req = { body: { message: 'hi' }, user: { id: 'user1' } };
+    const res = mockRes();
+    await chat(req, res);
+
+    assert.strictEqual(res.statusCode, 200);
+    assert.strictEqual(res.body.type, 'message');
+    assert.ok(res.body.message);
+    assert.strictEqual(res.body.suggestions, undefined);
   });
 
   it('returns 500 and error type when agent throws', async () => {

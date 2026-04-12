@@ -114,5 +114,6 @@ describe('productAgent', () => {
     assert.strictEqual(result.type, 'product_list');
     assert.strictEqual(result.data.length, 0);
     assert.ok(result.message.includes('No products found'));
+    assert.deepStrictEqual(result.suggestions, ['Try a different search', 'Show all products']);
   });
 });

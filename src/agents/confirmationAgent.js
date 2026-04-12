@@ -4,6 +4,7 @@
  */
 
 const orderService = require('../services/order.service');
+const { toValidObjectIdString } = require('../utils/mongoId');
 
 /**
  * @param {object} input
@@ -14,9 +15,9 @@ const orderService = require('../services/order.service');
  * @returns {Promise<{ type: string, message: string, data: object }>}
  */
 async function handle({ userId, intent, params, orderId }) {
-  const oid = orderId || (params && params.orderId);
+  const oid = toValidObjectIdString(orderId) || toValidObjectIdString(params && params.orderId);
 
-  if (oid && String(oid).trim()) {
+  if (oid) {
     const order = await orderService.getOrderById(userId, oid);
     return {
       type: 'order_confirmed',

@@ -12,9 +12,9 @@ function addOutOfStock(product) {
     return product;
 }
 
-async function getProductId(productId){
+async function getProductId(productId) {
     const product = await Product.findById(productId).lean();
-    if(!product) throw new Error('Product not found');
+    if (!product) throw new Error('Product not found');
     return addOutOfStock(product);
 }
 
@@ -28,7 +28,7 @@ async function invalidateProductsListCache() {
     }
 }
 
-async function getProducts(){
+async function getProducts() {
     const redis = getRedis();
     if (redis) {
         try {
@@ -47,7 +47,7 @@ async function getProducts(){
 
     console.log('[getProducts] reading products from MongoDB');
     const products = await Product.find().lean();
-    if(!products) throw new Error('Products not found');
+    if (!products) throw new Error('Products not found');
     products.forEach(addOutOfStock);
 
     if (redis) {
@@ -135,16 +135,27 @@ const SORT_BY_CATEGORY = ['name', 'price_asc', 'price_desc', 'newest', 'rating']
  * @param {string} [sort='name'] - name | price_asc | price_desc | newest | rating
  */
 
-async function getProductsByCategoryName(categoryName){
+async function getProductsByCategoryName(categoryName) {
     console.log(categoryName);
-    const category=await Category.findOne({slug:categoryName}).lean();
+    const category = await Category.findOne({ slug: categoryName }).lean();
     console.log(category);
-    if(category){
-        const products=await Product.find({category:category._id}).lean();
+    if (category) {
+        const products = await Product.find({ category: category._id }).lean();
         products.forEach(addOutOfStock);
         console.log(products);
-        return products;
-    }else{
+        const productsdata = products.map(product => ({
+            name: product.name,
+            slug: product.slug,
+            price: product.price,
+            discountPrice: product.discountPrice,
+            images: product.images,
+            stock: product.stock,
+            outOfStock: product.outOfStock,
+            category: product.category
+        }))
+        console.log(productsdata);
+        return productsdata;
+    } else {
         throw new Error('Category not found');
     }
 

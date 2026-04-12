@@ -1,9 +1,10 @@
 /**
  * Order agent: handles PLACE_ORDER intent.
- * Delegates to order.service; shippingAddress from request body or must be provided.
+ * Uses shippingAddress from the chat request when complete; otherwise loads from user profile (same data as GET /api/auth/profile).
  */
 
 const orderService = require('../services/order.service');
+const profileService = require('../services/profile.service');
 
 /**
  * @param {object} input
@@ -14,9 +15,18 @@ const orderService = require('../services/order.service');
  * @returns {Promise<{ type: string, message: string, data: object }>}
  */
 async function handle({ userId, intent, params, shippingAddress }) {
-  const address = shippingAddress || (params && params.shippingAddress);
-  if (!address || typeof address !== 'object') {
-    throw new Error('Shipping address is required to place an order. Please provide fullName, phone, address, city, state, and pincode.');
+  let address = shippingAddress || (params && params.shippingAddress);
+  if (!profileService.hasCompleteShippingShape(address)) {
+    const fromProfile = await profileService.getShippingAddressForOrder(userId);
+    if (fromProfile) {
+      address = fromProfile;
+    }
+  }
+
+  if (!address || typeof address !== 'object' || !profileService.hasCompleteShippingShape(address)) {
+    throw new Error(
+      'No complete shipping address. Add one in your profile (street, city, state, pincode, and name/phone) via PATCH /api/auth/updateprofile, or send shippingAddress in the chat request.',
+    );
   }
 
   const body = { shippingAddress: address };

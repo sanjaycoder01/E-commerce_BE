@@ -103,8 +103,24 @@ async function getOrderById(userId, orderId) {
     return order;
 }
 
+/**
+ * Most recent order awaiting payment (e.g. chat "checkout" without orderId in body).
+ * @returns {Promise<string|null>} Order _id hex string
+ */
+async function getLatestPendingOrderId(userId) {
+    const order = await Order.findOne({
+        user: userId,
+        paymentStatus: 'PENDING',
+    })
+        .sort({ createdAt: -1 })
+        .select('_id')
+        .lean();
+    return order ? String(order._id) : null;
+}
+
 module.exports = {
     createOrder,
     getOrders,
-    getOrderById
+    getOrderById,
+    getLatestPendingOrderId,
 };

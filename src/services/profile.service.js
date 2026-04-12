@@ -59,4 +59,43 @@ async function updateProfile(userId, body) {
     return user;
 }
 
-module.exports = { getProfile, updateProfile };
+const ORDER_SHIPPING_FIELDS = ['fullName', 'phone', 'address', 'city', 'state', 'pincode'];
+
+function hasCompleteShippingShape(obj) {
+    if (!obj || typeof obj !== 'object') return false;
+    return ORDER_SHIPPING_FIELDS.every((f) => obj[f] != null && String(obj[f]).trim());
+}
+
+/**
+ * Build order shipping payload from saved profile addresses (first usable row).
+ * Maps profile `street` → order `address`. Fills missing name/phone from user root fields.
+ * @returns {Promise<object|null>}
+ */
+async function getShippingAddressForOrder(userId) {
+    const user = await User.findById(userId).select('name phone addresses').lean();
+    if (!user) return null;
+
+    for (const a of user.addresses || []) {
+        const street = (a.street && String(a.street).trim()) || '';
+        const city = (a.city && String(a.city).trim()) || '';
+        const state = (a.state && String(a.state).trim()) || '';
+        const pincode = (a.pincode && String(a.pincode).trim()) || '';
+        if (!street || !city || !state || !pincode) continue;
+
+        const fullName = (a.fullName && String(a.fullName).trim()) || (user.name && String(user.name).trim()) || '';
+        const phone = (a.phone && String(a.phone).trim()) || (user.phone && String(user.phone).trim()) || '';
+        if (!fullName || !phone) continue;
+
+        return {
+            fullName,
+            phone,
+            address: street,
+            city,
+            state,
+            pincode,
+        };
+    }
+    return null;
+}
+
+module.exports = { getProfile, updateProfile, getShippingAddressForOrder, hasCompleteShippingShape };

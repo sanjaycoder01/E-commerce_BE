@@ -1,5 +1,5 @@
 /**
- * Tests for intent detection (fallback path when OPENAI_API_KEY is not set).
+ * Tests for intent detection (fallback path when GROQ_API_KEY is not set).
  */
 const { describe, it, before } = require('node:test');
 const assert = require('node:assert');
@@ -9,12 +9,12 @@ describe('intent.service (fallback)', () => {
   let INTENTS;
 
   before(() => {
-    const saved = process.env.OPENAI_API_KEY;
-    process.env.OPENAI_API_KEY = '';
+    const saved = process.env.GROQ_API_KEY;
+    process.env.GROQ_API_KEY = '';
     const intentService = require('../src/services/intent.service');
     detectIntent = intentService.detectIntent;
     INTENTS = intentService.INTENTS;
-    if (saved !== undefined) process.env.OPENAI_API_KEY = saved;
+    if (saved !== undefined) process.env.GROQ_API_KEY = saved;
   });
 
   it('returns UNKNOWN for empty message', async () => {
@@ -80,5 +80,15 @@ describe('intent.service (fallback)', () => {
   it('returns UNKNOWN for unrelated message', async () => {
     const r = await detectIntent('hello world');
     assert.strictEqual(r.intent, INTENTS.UNKNOWN);
+  });
+
+  it('detects GREETING for "hi"', async () => {
+    const r = await detectIntent('hi');
+    assert.strictEqual(r.intent, INTENTS.GREETING);
+  });
+
+  it('detects GREETING for "thank you"', async () => {
+    const r = await detectIntent('thank you');
+    assert.strictEqual(r.intent, INTENTS.GREETING);
   });
 });

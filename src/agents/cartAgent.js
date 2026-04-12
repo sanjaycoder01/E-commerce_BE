@@ -42,7 +42,7 @@ async function handle({ userId, intent, params, productId, quantity }) {
     type: 'cart',
     message: `Added ${name} (qty: ${qty}) to your cart.`,
     data: { items: cart.items, totalPrice: cart.totalPrice },
-    suggestions: ['View cart', 'Place order', 'Continue shopping'],
+    suggestions: ['Place order', 'Continue shopping'],
   };
 }
 
